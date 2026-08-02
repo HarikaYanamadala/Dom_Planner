@@ -61,23 +61,78 @@ _SINGLE_DATE_TEMPLATE = {
         {"order_id": "8029881894", "default_dc": "5420", "chosen_dc": "5641",
          "action": "divert", "revenue_delta": 42000, "freight_delta": 600,
          "penalty_delta": -8000, "fill_before_pct": 50, "fill_after_pct": 95,
-         "cases_demanded": 2422, "profit_delta": 49400},
+         "cases_demanded": 2422, "profit_delta": 49400,
+         "customer": "Northgate Retail Group", "priority": 8,
+         "pgi_date": "2024-06-20", "revised_pgi_date": "2024-06-21",
+         "requested_delivery": "2024-06-27",
+         "materials": [
+             {"sku": "11002742", "name": "Nescafé Gold Blend 200g",
+              "cases_ordered": 820, "cases_filled": 780, "price_per_case": 42.50},
+             {"sku": "11000373", "name": "KitKat Chunky 40g × 36",
+              "cases_ordered": 1180, "cases_filled": 1140, "price_per_case": 28.00},
+             {"sku": "11007821", "name": "Nespresso Original 100 pods",
+              "cases_ordered": 422, "cases_filled": 400, "price_per_case": 155.00},
+         ]},
         {"order_id": "8029889814", "default_dc": "5410", "chosen_dc": "5420",
          "action": "divert", "revenue_delta": 87000, "freight_delta": -1200,
          "penalty_delta": -15000, "fill_before_pct": 45, "fill_after_pct": 98,
-         "cases_demanded": 7372, "profit_delta": 103200},
+         "cases_demanded": 7372, "profit_delta": 103200,
+         "customer": "Southern Grocery Alliance", "priority": 8,
+         "pgi_date": "2024-06-20", "revised_pgi_date": "2024-06-20",
+         "requested_delivery": "2024-06-28",
+         "materials": [
+             {"sku": "11003554", "name": "Nesquik Chocolate Powder 500g",
+              "cases_ordered": 2400, "cases_filled": 2380, "price_per_case": 31.50},
+             {"sku": "11005918", "name": "Maggi 2-Minute Noodles",
+              "cases_ordered": 3200, "cases_filled": 3140, "price_per_case": 19.00},
+             {"sku": "11009442", "name": "Milo Powder 1kg",
+              "cases_ordered": 1200, "cases_filled": 1190, "price_per_case": 36.00},
+             {"sku": "11004120", "name": "Pure Life Water 500ml × 24",
+              "cases_ordered": 572, "cases_filled": 500, "price_per_case": 12.00},
+         ]},
         {"order_id": "8029884906", "default_dc": "5410", "chosen_dc": "5420",
          "action": "divert", "revenue_delta": 32000, "freight_delta": 400,
          "penalty_delta": -6000, "fill_before_pct": 55, "fill_after_pct": 92,
-         "cases_demanded": 3667, "profit_delta": 37600},
+         "cases_demanded": 3667, "profit_delta": 37600,
+         "customer": "Metro Wholesale Partners", "priority": 6,
+         "pgi_date": "2024-06-21", "revised_pgi_date": "2024-06-24",
+         "requested_delivery": "2024-06-27",
+         "materials": [
+             {"sku": "11008863", "name": "San Pellegrino Sparkling 750ml",
+              "cases_ordered": 1800, "cases_filled": 1690, "price_per_case": 24.00},
+             {"sku": "11002742", "name": "Nescafé Gold Blend 200g",
+              "cases_ordered": 1200, "cases_filled": 1100, "price_per_case": 42.50},
+             {"sku": "11005918", "name": "Maggi 2-Minute Noodles",
+              "cases_ordered": 667, "cases_filled": 620, "price_per_case": 19.00},
+         ]},
         {"order_id": "8029495964", "default_dc": "5410", "chosen_dc": "5490",
          "action": "divert", "revenue_delta": 51000, "freight_delta": 900,
          "penalty_delta": -11000, "fill_before_pct": 40, "fill_after_pct": 96,
-         "cases_demanded": 5714, "profit_delta": 61100},
+         "cases_demanded": 5714, "profit_delta": 61100,
+         "customer": "Coastal Foods Distribution", "priority": 8,
+         "pgi_date": "2024-06-20", "revised_pgi_date": "2024-06-21",
+         "requested_delivery": "2024-06-26",
+         "materials": [
+             {"sku": "11007821", "name": "Nespresso Original 100 pods",
+              "cases_ordered": 1400, "cases_filled": 1360, "price_per_case": 155.00},
+             {"sku": "11000373", "name": "KitKat Chunky 40g × 36",
+              "cases_ordered": 2600, "cases_filled": 2500, "price_per_case": 28.00},
+             {"sku": "11003554", "name": "Nesquik Chocolate Powder 500g",
+              "cases_ordered": 1714, "cases_filled": 1620, "price_per_case": 31.50},
+         ]},
         {"order_id": "8029597603", "default_dc": "5083", "chosen_dc": "5420",
          "action": "divert", "revenue_delta": 8000, "freight_delta": -300,
          "penalty_delta": -2500, "fill_before_pct": 60, "fill_after_pct": 100,
-         "cases_demanded": 1197, "profit_delta": 10800},
+         "cases_demanded": 1197, "profit_delta": 10800,
+         "customer": "Prairie Distributors", "priority": 5,
+         "pgi_date": "2024-06-20", "revised_pgi_date": "2024-06-20",
+         "requested_delivery": "2024-06-25",
+         "materials": [
+             {"sku": "11004120", "name": "Pure Life Water 500ml × 24",
+              "cases_ordered": 700, "cases_filled": 700, "price_per_case": 12.00},
+             {"sku": "11009442", "name": "Milo Powder 1kg",
+              "cases_ordered": 497, "cases_filled": 497, "price_per_case": 36.00},
+         ]},
     ],
 }
 
@@ -537,38 +592,123 @@ with st.expander("Solver comparison (technical detail)", expanded=False):
 # =========================================================================
 
 st.markdown("### Per-order recommendations")
+st.caption("Click **Details** on any order to see the SKU-level breakdown, dates, and customer information.")
+
+_action_meta = {
+    "divert":  {"icon": "🔄", "label": "DIVERT",        "color": "#d97706"},
+    "keep":    {"icon": "✓",  "label": "KEEP AT DEFAULT", "color": "#167a3a"},
+    "drop":    {"icon": "⚠",  "label": "DO NOT SHIP",   "color": "#b91c1c"},
+}
 
 for order in date_view['orders']:
-    action_label = {"divert": "🔄 DIVERT", "keep": "✓ KEEP", "drop": "⚠ DO NOT SHIP"}[order['action']]
+    meta = _action_meta[order['action']]
+    profit_gain = order['profit_delta']
+
     with st.container(border=True):
-        top_cols = st.columns([2, 2, 3, 1.5])
-        top_cols[0].markdown(f"**Order ...{order['order_id'][-6:]}**")
-        top_cols[0].caption(f"{order['cases_demanded']:,} cases")
-
-        top_cols[1].markdown(f"**{order['default_dc']} → {order['chosen_dc']}**")
-        top_cols[1].caption(action_label)
-
-        with top_cols[2]:
-            impact_cols = st.columns(3)
-            impact_cols[0].metric(
-                "Revenue",
-                f"${order['revenue_delta']:+,.0f}",
-                delta_color="normal" if order['revenue_delta'] > 0 else "inverse",
+        # ── Header row: action, order ID, customer, DC route ──────────────
+        head1, head2, head3 = st.columns([3, 4, 3])
+        with head1:
+            st.markdown(
+                f"<div style='font-size:13px;font-weight:600;color:{meta['color']};'>"
+                f"{meta['icon']} {meta['label']}</div>"
+                f"<div style='font-size:20px;font-weight:700;margin-top:2px;'>"
+                f"Order #{order['order_id'][-6:]}</div>"
+                f"<div style='font-size:12px;color:#666;margin-top:2px;'>"
+                f"{order.get('customer','—')} · priority {order.get('priority','—')}</div>",
+                unsafe_allow_html=True,
             )
-            impact_cols[1].metric(
-                "Freight",
-                f"${order['freight_delta']:+,.0f}",
-                delta_color="inverse" if order['freight_delta'] > 0 else "normal",
+        with head2:
+            st.markdown(
+                f"<div style='font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.04em;'>Reassignment</div>"
+                f"<div style='font-size:22px;font-weight:600;margin-top:2px;font-family:SF Mono,Menlo,monospace;'>"
+                f"DC {order['default_dc']} <span style='color:#d97706;'>&nbsp;➜&nbsp;</span> DC {order['chosen_dc']}</div>"
+                f"<div style='font-size:12px;color:#666;margin-top:2px;'>"
+                f"{order['cases_demanded']:,} cases requested</div>",
+                unsafe_allow_html=True,
             )
-            impact_cols[2].metric(
-                "Fill rate",
-                f"{order['fill_after_pct']}%",
-                f"+{order['fill_after_pct'] - order['fill_before_pct']} pp",
+        with head3:
+            gain_color = "#167a3a" if profit_gain >= 0 else "#b91c1c"
+            st.markdown(
+                f"<div style='font-size:12px;color:#666;text-transform:uppercase;letter-spacing:.04em;'>Net profit change</div>"
+                f"<div style='font-size:28px;font-weight:700;color:{gain_color};margin-top:2px;'>"
+                f"${profit_gain:+,.0f}</div>"
+                f"<div style='font-size:12px;color:#666;margin-top:2px;'>if approved</div>",
+                unsafe_allow_html=True,
             )
 
-        with top_cols[3]:
+        st.markdown("<hr style='margin:12px 0 10px 0;border:none;border-top:1px solid #e5e2db;'>",
+                    unsafe_allow_html=True)
+
+        # ── Middle row: financial breakdown + fill lift + dates ───────────
+        mid1, mid2, mid3 = st.columns(3)
+        with mid1:
+            st.markdown("**💰 Financial impact**")
+            st.markdown(
+                f"<div style='font-size:13px;line-height:1.7;'>"
+                f"Revenue&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b style='color:#167a3a;'>${order['revenue_delta']:+,.0f}</b><br>"
+                f"Freight&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b style='color:{('#b91c1c' if order['freight_delta']>0 else '#167a3a')};'>${order['freight_delta']:+,.0f}</b><br>"
+                f"Penalty&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b style='color:#167a3a;'>${-order['penalty_delta']:,.0f}</b> avoided"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+        with mid2:
+            st.markdown("**📦 Fill improvement**")
+            fill_lift = order['fill_after_pct'] - order['fill_before_pct']
+            st.markdown(
+                f"<div style='font-size:13px;line-height:1.7;'>"
+                f"Before &nbsp; {order['fill_before_pct']}%<br>"
+                f"After &nbsp;&nbsp;&nbsp;<b>{order['fill_after_pct']}%</b><br>"
+                f"Lift &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b style='color:#167a3a;'>+{fill_lift} pp</b>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+            st.progress(order['fill_after_pct'] / 100)
+        with mid3:
+            st.markdown("**📅 Key dates**")
+            pgi = order.get('pgi_date', '—')
+            revised_pgi = order.get('revised_pgi_date', pgi)
+            rdd = order.get('requested_delivery', '—')
+            revised_note = ""
+            if revised_pgi != pgi:
+                revised_note = f"<br><span style='color:#d97706;'>Revised PGI &nbsp; {revised_pgi}</span>"
+            st.markdown(
+                f"<div style='font-size:13px;line-height:1.7;'>"
+                f"Original PGI &nbsp; {pgi}{revised_note}<br>"
+                f"Requested delivery &nbsp; {rdd}"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+
+        # ── Materials expander ────────────────────────────────────────────
+        materials = order.get('materials', [])
+        if materials:
+            with st.expander(f"📋 Materials — {len(materials)} SKU{'s' if len(materials)!=1 else ''}, "
+                             f"{sum(m['cases_ordered'] for m in materials):,} cases ordered"):
+                mat_df = pd.DataFrame(materials)
+                mat_df["ordered_cases"] = mat_df["cases_ordered"]
+                mat_df["filled_cases"] = mat_df["cases_filled"]
+                mat_df["fill_%"] = (mat_df["cases_filled"] / mat_df["cases_ordered"] * 100).round(1)
+                mat_df["shortfall"] = mat_df["cases_ordered"] - mat_df["cases_filled"]
+                mat_df["line_revenue"] = (mat_df["cases_filled"] * mat_df["price_per_case"]).round(0)
+                display_df = mat_df[["sku", "name", "ordered_cases", "filled_cases",
+                                     "shortfall", "fill_%", "price_per_case", "line_revenue"]]
+                display_df.columns = ["SKU", "Product", "Ordered", "Filled",
+                                       "Shortfall", "Fill %", "$/case", "Revenue"]
+                st.dataframe(
+                    display_df,
+                    use_container_width=True, hide_index=True,
+                    column_config={
+                        "$/case": st.column_config.NumberColumn(format="$%.2f"),
+                        "Revenue": st.column_config.NumberColumn(format="$%,.0f"),
+                        "Fill %": st.column_config.NumberColumn(format="%.1f%%"),
+                    },
+                )
+
+        # ── Action row: Explain button + explanation display ──────────────
+        btn_col, spacer = st.columns([1, 4])
+        with btn_col:
             explain_key = f"explain_{order['order_id']}"
-            if st.button("💡 Explain", key=explain_key, use_container_width=True):
+            if st.button("💡 Explain this decision", key=explain_key, use_container_width=True):
                 with st.spinner("Thinking..."):
                     if api_key:
                         st.session_state.explanations[order['order_id']] = \
@@ -577,7 +717,6 @@ for order in date_view['orders']:
                         st.session_state.explanations[order['order_id']] = \
                             generate_rule_based_explanation(order)
 
-        # Show cached explanation if present
         if order['order_id'] in st.session_state.explanations:
             st.info(st.session_state.explanations[order['order_id']])
 
