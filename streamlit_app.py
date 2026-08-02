@@ -28,8 +28,14 @@ st.set_page_config(
 # =========================================================================
 # Demo data (used when nothing is uploaded — app is usable out of the box)
 # =========================================================================
+# Multi-date so the date picker + cross-date section appear on first open,
+# even before the user uploads their own data. Numbers echo the technical
+# report's Appendix A/B: QAOA hits F1 = 1.00 on every date; 2024-06-25 is
+# the deliberately harder outlier where MILP and greedy underperform.
 
-DEMO_DATA = {
+import copy as _copy
+
+_SINGLE_DATE_TEMPLATE = {
     "meta": {
         "current_date": "2024-06-17",
         "n_orders_reviewed": 5,
@@ -42,48 +48,81 @@ DEMO_DATA = {
          "fill_rate": 0.086, "diverts": 0, "precision": 0.0, "recall": 0.0, "f1": 0.0,
          "runtime_s": 0.01},
         {"solver": "Baseline 2: greedy", "profit": 980970, "gap_pct": 0.18,
-         "fill_rate": 0.888, "diverts": 4, "precision": 1.0, "recall": 0.8, "f1": 0.889,
+         "fill_rate": 0.888, "diverts": 4, "precision": 1.0, "recall": 0.8, "f1": 0.89,
          "runtime_s": 0.02},
         {"solver": "QAOA (quantum)", "profit": 982777, "gap_pct": 0.00,
-         "fill_rate": 0.890, "diverts": 5, "precision": 1.0, "recall": 1.0, "f1": 1.0,
+         "fill_rate": 0.890, "diverts": 5, "precision": 1.0, "recall": 1.0, "f1": 1.00,
          "runtime_s": 24.3},
         {"solver": "MILP (classical, 7-constraint PoC)", "profit": 980970, "gap_pct": 0.18,
-         "fill_rate": 0.888, "diverts": 4, "precision": 1.0, "recall": 0.8, "f1": 0.889,
+         "fill_rate": 0.888, "diverts": 4, "precision": 1.0, "recall": 0.8, "f1": 0.89,
          "runtime_s": 1.2},
     ],
     "orders": [
-        {
-            "order_id": "8029881894", "default_dc": "5420", "chosen_dc": "5641",
-            "action": "divert", "revenue_delta": 42000, "freight_delta": 600,
-            "penalty_delta": -8000, "fill_before_pct": 50, "fill_after_pct": 95,
-            "cases_demanded": 2422, "profit_delta": 49400,
-        },
-        {
-            "order_id": "8029889814", "default_dc": "5410", "chosen_dc": "5420",
-            "action": "divert", "revenue_delta": 87000, "freight_delta": -1200,
-            "penalty_delta": -15000, "fill_before_pct": 45, "fill_after_pct": 98,
-            "cases_demanded": 7372, "profit_delta": 103200,
-        },
-        {
-            "order_id": "8029884906", "default_dc": "5410", "chosen_dc": "5420",
-            "action": "divert", "revenue_delta": 32000, "freight_delta": 400,
-            "penalty_delta": -6000, "fill_before_pct": 55, "fill_after_pct": 92,
-            "cases_demanded": 3667, "profit_delta": 37600,
-        },
-        {
-            "order_id": "8029495964", "default_dc": "5410", "chosen_dc": "5490",
-            "action": "divert", "revenue_delta": 51000, "freight_delta": 900,
-            "penalty_delta": -11000, "fill_before_pct": 40, "fill_after_pct": 96,
-            "cases_demanded": 5714, "profit_delta": 61100,
-        },
-        {
-            "order_id": "8029597603", "default_dc": "5083", "chosen_dc": "5420",
-            "action": "divert", "revenue_delta": 8000, "freight_delta": -300,
-            "penalty_delta": -2500, "fill_before_pct": 60, "fill_after_pct": 100,
-            "cases_demanded": 1197, "profit_delta": 10800,
-        },
+        {"order_id": "8029881894", "default_dc": "5420", "chosen_dc": "5641",
+         "action": "divert", "revenue_delta": 42000, "freight_delta": 600,
+         "penalty_delta": -8000, "fill_before_pct": 50, "fill_after_pct": 95,
+         "cases_demanded": 2422, "profit_delta": 49400},
+        {"order_id": "8029889814", "default_dc": "5410", "chosen_dc": "5420",
+         "action": "divert", "revenue_delta": 87000, "freight_delta": -1200,
+         "penalty_delta": -15000, "fill_before_pct": 45, "fill_after_pct": 98,
+         "cases_demanded": 7372, "profit_delta": 103200},
+        {"order_id": "8029884906", "default_dc": "5410", "chosen_dc": "5420",
+         "action": "divert", "revenue_delta": 32000, "freight_delta": 400,
+         "penalty_delta": -6000, "fill_before_pct": 55, "fill_after_pct": 92,
+         "cases_demanded": 3667, "profit_delta": 37600},
+        {"order_id": "8029495964", "default_dc": "5410", "chosen_dc": "5490",
+         "action": "divert", "revenue_delta": 51000, "freight_delta": 900,
+         "penalty_delta": -11000, "fill_before_pct": 40, "fill_after_pct": 96,
+         "cases_demanded": 5714, "profit_delta": 61100},
+        {"order_id": "8029597603", "default_dc": "5083", "chosen_dc": "5420",
+         "action": "divert", "revenue_delta": 8000, "freight_delta": -300,
+         "penalty_delta": -2500, "fill_before_pct": 60, "fill_after_pct": 100,
+         "cases_demanded": 1197, "profit_delta": 10800},
     ],
 }
+
+
+def _build_multi_date_demo():
+    """Build a 5-date demo by scaling the single-date template. 2024-06-25 is
+    the harder-instance date where MILP and greedy fail to recover the
+    optimum's picks — matches the finding in report §5.3."""
+    # (date, profit multiplier, is_hard_day)
+    date_configs = [
+        ("2024-06-17", 1.00, False),
+        ("2024-06-19", 1.06, False),
+        ("2024-06-21", 0.96, False),
+        ("2024-06-23", 1.03, False),
+        ("2024-06-25", 0.58, True),   # smaller instance, greedy/MILP tank
+    ]
+    dates = {}
+    for date_str, mult, is_hard in date_configs:
+        dv = _copy.deepcopy(_SINGLE_DATE_TEMPLATE)
+        dv["meta"]["current_date"] = date_str
+        dv["meta"]["certified_optimum"] = int(dv["meta"]["certified_optimum"] * mult)
+        for row in dv["comparison"]:
+            row["profit"] = int(row["profit"] * mult)
+        for order in dv["orders"]:
+            order["revenue_delta"] = int(order["revenue_delta"] * mult)
+            order["profit_delta"] = int(order["profit_delta"] * mult)
+        if is_hard:
+            # On the hard day, MILP and greedy pick only 1 of 5 correctly
+            for row in dv["comparison"]:
+                if row["solver"].startswith("MILP"):
+                    row["f1"] = 0.20; row["recall"] = 0.20; row["precision"] = 1.0
+                elif row["solver"].startswith("Baseline 2"):
+                    row["f1"] = 0.40; row["recall"] = 0.40; row["precision"] = 1.0
+        dates[date_str] = dv
+    return {
+        "meta": {
+            "generated_at": "2026-08-01T00:00:00",
+            "n_dates": len(dates),
+            "schema": "multi_date_v1",
+        },
+        "dates": dates,
+    }
+
+
+DEMO_DATA = _build_multi_date_demo()
 
 # =========================================================================
 # AI explanation via Gemini (falls back to rule-based when no key)
@@ -145,11 +184,140 @@ def generate_rule_based_explanation(order):
                 f"{order['fill_after_pct']}%.")
 
 # =========================================================================
+# Chatbot — answer arbitrary questions about the loaded data
+# =========================================================================
+
+def build_data_context(date_view, solver_data, is_multi_date):
+    """Compact JSON snapshot Gemini can read to answer questions.
+
+    Kept small on purpose: the current date view in full, plus a summary
+    across all dates when multi-date so questions like 'which date is
+    hardest' can be answered without shipping every order.
+    """
+    ctx = {
+        "current_date_view": {
+            "date": date_view["meta"]["current_date"],
+            "certified_optimum": date_view["meta"]["certified_optimum"],
+            "solvers": date_view["comparison"],
+            "orders": date_view["orders"],
+        }
+    }
+    if is_multi_date:
+        ctx["all_dates_summary"] = [
+            {
+                "date": d,
+                "certified_optimum": dv["meta"]["certified_optimum"],
+                "solvers": [
+                    {"solver": r["solver"], "profit": r["profit"],
+                     "f1": r["f1"], "diverts": r["diverts"]}
+                    for r in dv["comparison"]
+                ],
+            }
+            for d, dv in sorted(solver_data["dates"].items())
+        ]
+    return ctx
+
+
+def answer_data_question(question, date_view, solver_data, is_multi_date, api_key):
+    """Answer a natural-language question about the data. Uses Gemini when a
+    key is provided, otherwise a keyword-based fallback that covers the
+    most common questions."""
+    if api_key:
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            context = build_data_context(date_view, solver_data, is_multi_date)
+            prompt = (
+                "You are a supply-chain analyst helping a Nestlé planner interpret "
+                "DOM optimization results. Answer the user's question using ONLY "
+                "the JSON data below. Be direct and specific — cite the numbers. "
+                "If the data doesn't contain the answer, say so honestly. "
+                "Keep responses to 2-4 sentences in plain business language.\n\n"
+                f"Data:\n{json.dumps(context, indent=2)}\n\n"
+                f"Question: {question}\n\nAnswer:"
+            )
+            response = model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
+            return (f"⚠️ Gemini error: {e}\n\nFalling back to keyword search:\n\n"
+                    + rule_based_answer_question(question, date_view, solver_data, is_multi_date))
+    else:
+        return (rule_based_answer_question(question, date_view, solver_data, is_multi_date)
+                + "\n\n*Add a Gemini API key in the sidebar for open-ended questions.*")
+
+
+def rule_based_answer_question(question, date_view, solver_data, is_multi_date):
+    """Simple keyword matcher for common data questions when Gemini isn't set up."""
+    q = question.lower().strip()
+    orders = date_view["orders"]
+    date_str = date_view["meta"]["current_date"]
+
+    # Highest profit gain
+    if any(k in q for k in ["highest profit", "biggest profit", "top profit", "max profit", "best profit"]):
+        top = max(orders, key=lambda o: o["profit_delta"])
+        return (f"On {date_str}, **order ...{top['order_id'][-6:]}** has the highest profit gain: "
+                f"reassigning from DC {top['default_dc']} to {top['chosen_dc']} unlocks "
+                f"**${top['profit_delta']:,}** in additional profit.")
+
+    # Lowest profit gain
+    if any(k in q for k in ["lowest profit", "smallest profit", "min profit"]):
+        bot = min(orders, key=lambda o: o["profit_delta"])
+        return (f"On {date_str}, **order ...{bot['order_id'][-6:]}** has the smallest profit gain "
+                f"at ${bot['profit_delta']:,} ({bot['default_dc']} → {bot['chosen_dc']}).")
+
+    # Number of diverts
+    if any(k in q for k in ["how many divert", "number of divert", "diverts", "diverted"]):
+        if is_multi_date and "all" in q:
+            total = sum(sum(1 for o in dv["orders"] if o["action"] == "divert")
+                        for dv in solver_data["dates"].values())
+            return f"Across all {len(solver_data['dates'])} dates, **{total} orders** were diverted."
+        n = sum(1 for o in orders if o["action"] == "divert")
+        return f"On {date_str}, **{n} of {len(orders)}** orders were diverted."
+
+    # Average fill
+    if any(k in q for k in ["average fill", "avg fill", "mean fill"]):
+        avg_after = sum(o["fill_after_pct"] for o in orders) / len(orders)
+        avg_before = sum(o["fill_before_pct"] for o in orders) / len(orders)
+        return (f"On {date_str}, average fill rate went from **{avg_before:.0f}%** at the default DC "
+                f"to **{avg_after:.0f}%** after reassignment (+{avg_after-avg_before:.0f} pp).")
+
+    # Certified optimum
+    if "optimum" in q or "certified" in q:
+        return (f"The certified optimum profit on {date_str} is "
+                f"**${date_view['meta']['certified_optimum']:,}**.")
+
+    # Solver-specific F1
+    for solver_name, key in [("qaoa", "QAOA"), ("milp", "MILP"),
+                              ("greedy", "Baseline 2"), ("baseline", "Baseline")]:
+        if solver_name in q and any(k in q for k in ["f1", "score", "performance", "how did", "how well"]):
+            match = next((r for r in date_view["comparison"] if key in r["solver"]), None)
+            if match:
+                return (f"On {date_str}, **{match['solver']}** scored F1 = **{match['f1']:.2f}** "
+                        f"with a gap of {match['gap_pct']:.2f}% vs the certified optimum, "
+                        f"recommending {match['diverts']} diverts.")
+
+    # Hardest / easiest date across the sweep
+    if is_multi_date and ("hard" in q or "difficult" in q or "worst" in q):
+        # Hardest = lowest optimum (proxy) — or lowest QAOA agreement
+        hardest = min(solver_data["dates"].items(),
+                      key=lambda kv: kv[1]["meta"]["certified_optimum"])
+        return (f"The hardest date in the sweep is **{hardest[0]}** — smallest certified optimum "
+                f"(${hardest[1]['meta']['certified_optimum']:,}), where MILP and greedy tend to "
+                f"leave the most profit on the table.")
+
+    return ("I can answer questions about profit gains (highest/lowest), diverts, fill rates, "
+            "solver performance (QAOA/MILP F1), the certified optimum, and which date is "
+            "hardest. For open-ended questions, add a Gemini API key in the sidebar.")
+
+# =========================================================================
 # Session state — cache explanations so buttons don't re-hit the API
 # =========================================================================
 
 if "explanations" not in st.session_state:
     st.session_state.explanations = {}
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
 # =========================================================================
 # Sidebar — settings and data source
@@ -232,20 +400,63 @@ if solver_data is None:
 IS_MULTI_DATE = isinstance(solver_data.get("dates"), dict) and len(solver_data["dates"]) > 0
 
 if IS_MULTI_DATE:
+    all_dates = sorted(solver_data["dates"].keys())
     with st.sidebar:
         st.markdown("---")
         st.markdown("**Planning date**")
-        all_dates = sorted(solver_data["dates"].keys())
-        selected_date = st.selectbox(
-            "Which date to view?", all_dates,
-            index=len(all_dates) - 1, label_visibility="collapsed",
-        )
         st.caption(f"{len(all_dates)} date(s) loaded")
-    # date_view is the single-date slice we'll render below
-    date_view = solver_data["dates"][selected_date]
+
+    # date_view is filled from the top-of-page picker below
+    date_view = None
 else:
     date_view = solver_data
     selected_date = solver_data["meta"]["current_date"]
+
+# =========================================================================
+# Welcome banner — one-line explanation for first-time visitors
+# =========================================================================
+
+st.markdown("""
+<div style="background: linear-gradient(90deg, #f4f1ea, #efece6);
+            padding: 14px 18px; border-radius: 6px; margin-bottom: 8px;
+            border-left: 4px solid #d97706;">
+  <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">
+    Welcome to the Nestlé DOM Planner 🚚
+  </div>
+  <div style="font-size: 13px; color: #444;">
+    See which orders our optimizer recommends reassigning to a different distribution center,
+    and why. <b>Click a date below</b> to explore the recommendations for that planning day.
+    <b>Scroll down</b> for cross-date trends and a one-click AI executive summary.
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+# =========================================================================
+# Prominent date picker (top of main area) — the "how to change the date"
+# =========================================================================
+
+if IS_MULTI_DATE:
+    st.markdown("#### 📅 Choose a planning date")
+    # Prefer st.pills if available (Streamlit ≥ 1.42), fall back to segmented control
+    try:
+        selected_date = st.pills(
+            "Planning date",
+            options=all_dates,
+            selection_mode="single",
+            default=all_dates[0],
+            label_visibility="collapsed",
+        )
+    except (AttributeError, TypeError):
+        # Older Streamlit: use a radio in horizontal layout
+        selected_date = st.radio(
+            "Planning date",
+            options=all_dates,
+            horizontal=True,
+            label_visibility="collapsed",
+        )
+    if selected_date is None:
+        selected_date = all_dates[0]
+    date_view = solver_data["dates"][selected_date]
 
 # =========================================================================
 # Main area — header + summary metrics
@@ -570,6 +781,61 @@ business should do next. 4-6 sentences, direct, decisive."""
 
     if "exec_summary" in st.session_state:
         st.info(st.session_state["exec_summary"])
+
+# =========================================================================
+# 💬 AI chat — ask arbitrary questions about the data
+# =========================================================================
+
+st.markdown("---")
+st.markdown("## 💬 Ask the AI about this data")
+st.caption(
+    "Type any question about the recommendations, solvers, or dates loaded here. "
+    "Gemini answers using the numbers currently on screen — no guesswork."
+)
+
+# Suggestion pills for first-time visitors (only shown when the chat is empty)
+if not st.session_state.chat_history:
+    st.markdown("**Try one of these to start:**")
+    suggestion_cols = st.columns(3)
+    suggestions = [
+        "Which order has the highest profit gain?",
+        "How many diverts across all dates?",
+        "Why does MILP struggle on 2024-06-25?",
+    ]
+    for col, suggestion in zip(suggestion_cols, suggestions):
+        if col.button(suggestion, use_container_width=True, key=f"suggest_{suggestion[:20]}"):
+            st.session_state["_pending_chat_question"] = suggestion
+            st.rerun()
+
+# Show the conversation so far
+for msg in st.session_state.chat_history:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# Chat input at the bottom
+user_question = st.chat_input("Ask a question about the data...")
+
+# A suggestion button click gets funneled through the same code path
+if not user_question and "_pending_chat_question" in st.session_state:
+    user_question = st.session_state.pop("_pending_chat_question")
+
+if user_question:
+    st.session_state.chat_history.append({"role": "user", "content": user_question})
+    with st.chat_message("user"):
+        st.markdown(user_question)
+    with st.chat_message("assistant"):
+        with st.spinner("Reading the data..."):
+            answer = answer_data_question(
+                user_question, date_view, solver_data, IS_MULTI_DATE, api_key
+            )
+        st.markdown(answer)
+        st.session_state.chat_history.append({"role": "assistant", "content": answer})
+
+# Clear-chat button (only when there's something to clear)
+if st.session_state.chat_history:
+    if st.button("🗑 Clear chat history"):
+        st.session_state.chat_history = []
+        st.rerun()
 
 # =========================================================================
 # Footer
