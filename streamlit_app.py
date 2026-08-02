@@ -765,8 +765,9 @@ business should do next. 4-6 sentences, direct, decisive."""
                 # No API key — rule-based executive summary
                 qaoa_mean_f1 = cross_df[cross_df["solver"].str.startswith("QAOA")]["F1"].mean()
                 milp_mean_f1 = cross_df[cross_df["solver"].str.startswith("MILP")]["F1"].mean()
+                dates_str = ", ".join(sorted(cross_df["date"].unique()))
                 st.session_state["exec_summary"] = (
-                    f"Across {n_dates} planning dates ({dates := ', '.join(sorted(cross_df['date'].unique()))}), "
+                    f"Across {n_dates} planning dates ({dates_str}), "
                     f"QAOA recovered the certified optimum on every date "
                     f"(mean F1 = {qaoa_mean_f1:.2f}), while MILP averaged "
                     f"F1 = {milp_mean_f1:.2f}. MILP is 15-50× faster in wall-clock "
