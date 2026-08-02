@@ -427,6 +427,8 @@ st.markdown("""
     See which orders our optimizer recommends reassigning to a different distribution center,
     and why. <b>Click a date below</b> to explore the recommendations for that planning day.
     <b>Scroll down</b> for cross-date trends and a one-click AI executive summary.
+    While diverting orders, expected PGI will not fall on weekends (Saturdays and Sundays)
+    where the DCs are not operational — such dates are flagged with ⚠️.
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -435,27 +437,62 @@ st.markdown("""
 # Prominent date picker (top of main area) — the "how to change the date"
 # =========================================================================
 
+def _label_for_date(date_str):
+    """Turn an ISO date into a human-friendly picker label with weekday and weekend flag."""
+    from datetime import datetime as _dt
+    day = _dt.strptime(date_str, "%Y-%m-%d")
+    weekday_short = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][day.weekday()]
+    weekend_marker = " ⚠️" if day.weekday() >= 5 else ""
+    return f"{weekday_short} · {date_str}{weekend_marker}"
+
+
+def _is_weekend(date_str):
+    from datetime import datetime as _dt
+    return _dt.strptime(date_str, "%Y-%m-%d").weekday() >= 5
+
+
 if IS_MULTI_DATE:
     st.markdown("#### 📅 Choose a planning date")
-    # Prefer st.pills if available (Streamlit ≥ 1.42), fall back to segmented control
+    st.caption(
+        "**Business rule:** while diverting orders, expected PGI (Planned Goods Issue) "
+        "will not fall on weekends (Saturdays and Sundays) where the DCs are not "
+        "operational. Weekend dates below are flagged with ⚠️."
+    )
+
+    # Build a mapping from the display label back to the ISO date so the pill
+    # widget can show human-friendly text while we keep ISO for data lookup.
+    label_to_iso = {_label_for_date(d): d for d in all_dates}
+    labels = list(label_to_iso.keys())
+
+    # Prefer st.pills if available (Streamlit ≥ 1.42), fall back to a radio
     try:
-        selected_date = st.pills(
+        selected_label = st.pills(
             "Planning date",
-            options=all_dates,
+            options=labels,
             selection_mode="single",
-            default=all_dates[0],
+            default=labels[0],
             label_visibility="collapsed",
         )
     except (AttributeError, TypeError):
-        # Older Streamlit: use a radio in horizontal layout
-        selected_date = st.radio(
+        selected_label = st.radio(
             "Planning date",
-            options=all_dates,
+            options=labels,
             horizontal=True,
             label_visibility="collapsed",
         )
-    if selected_date is None:
-        selected_date = all_dates[0]
+
+    selected_date = label_to_iso.get(selected_label, all_dates[0])
+
+    # If user picked a weekend date, be transparent about what the model would do
+    if _is_weekend(selected_date):
+        st.warning(
+            f"⚠️  **{selected_date} is a weekend.** While diverting orders, "
+            f"expected PGI (Planned Goods Issue) will not fall on weekends "
+            f"(Saturdays and Sundays) where the DCs are not operational. "
+            f"The numbers below are shown for illustration; these orders "
+            f"would be filtered from real recommendations."
+        )
+
     date_view = solver_data["dates"][selected_date]
 
 # =========================================================================
