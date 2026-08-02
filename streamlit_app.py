@@ -379,11 +379,34 @@ if "chat_history" not in st.session_state:
 # =========================================================================
 
 with st.sidebar:
-    st.markdown("### 🚚 Nestlé DOM Planner")
-    st.caption("WISER 2026 · Deliverable 6")
+    # ─── Header / brand ─────────────────────────────────────────────
+    st.markdown(
+        "<div style='padding:8px 0 4px 0;'>"
+        "<div style='font-size:22px;font-weight:700;'>🚚 Nestlé DOM Planner</div>"
+        "<div style='font-size:12px;color:#666;margin-top:2px;'>"
+        "Distributed Order Management</div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
-    st.markdown("---")
-    st.markdown("**AI explanations**")
+    # ─── Team / project meta ────────────────────────────────────────
+    st.markdown(
+        "<div style='background:#f4f1ea;border-left:3px solid #d97706;"
+        "padding:8px 10px;margin:8px 0;border-radius:4px;'>"
+        "<div style='font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.04em;'>Team</div>"
+        "<div style='font-size:14px;font-weight:600;'>Convergence</div>"
+        "<div style='font-size:11px;color:#666;margin-top:4px;'>"
+        "WISER 2026 · Challenge 4</div>"
+        "<div style='font-size:11px;color:#666;'>"
+        "Deliverable 6 · Planner View</div>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    st.divider()
+
+    # ─── AI settings ────────────────────────────────────────────────
+    st.markdown("#### 🤖 AI Assistant")
 
     # Auto-pull the API key from Streamlit secrets when deployed
     # (Set GEMINI_API_KEY in Streamlit Cloud → Settings → Secrets)
@@ -397,41 +420,49 @@ with st.sidebar:
         type="password",
         value=default_key,
         help="Get one free at https://ai.google.dev/ — no card required. "
-             "Leave blank to use rule-based fallback.",
+             "Powers per-order explanations, executive summaries, and the "
+             "data chat at the bottom of the page. Leave blank to use the "
+             "rule-based fallback (still works, just less flexible).",
     )
     if not api_key:
-        st.caption("⚠️  No key → rule-based explanations")
+        st.caption("⚠️  No key → rule-based mode")
     elif default_key:
-        st.caption("✅ Using Gemini (from deployment secrets)")
+        st.caption("✅ Gemini active (deployment secret)")
     else:
-        st.caption("✅ Using Gemini")
+        st.caption("✅ Gemini active")
 
-    st.markdown("---")
-    st.markdown("**Data source**")
+    st.divider()
+
+    # ─── Data source ────────────────────────────────────────────────
+    st.markdown("#### 📂 Data Source")
     data_source = st.radio(
-        "Choose one:",
+        "Data source",
         ["Demo data", "Upload solver_output.json"],
         label_visibility="collapsed",
+        help="Demo data ships with the app — good for exploring. "
+             "Upload real solver output produced by the DOM notebook "
+             "for the actual submission numbers.",
     )
     solver_data = None
     if data_source == "Upload solver_output.json":
         uploaded = st.file_uploader(
-            "Export from the notebook (see §11 in the ipynb).",
+            "Upload JSON",
             type="json",
+            label_visibility="collapsed",
+            help="Produced by the notebook's export cell.",
         )
         if uploaded:
             try:
                 solver_data = json.load(uploaded)
-                st.success(f"Loaded {len(solver_data.get('orders', []))} orders")
+                n_orders = (sum(len(dv.get("orders", [])) for dv in solver_data["dates"].values())
+                            if "dates" in solver_data
+                            else len(solver_data.get("orders", [])))
+                st.success(f"✅ {n_orders} orders loaded")
             except Exception as e:
                 st.error(f"Couldn't parse: {e}")
-        else:
-            st.info("Upload the JSON, or switch to demo data above.")
     if solver_data is None and data_source == "Demo data":
         solver_data = DEMO_DATA
-
-    st.markdown("---")
-    st.caption(f"Generated: {solver_data['meta']['generated_at'][:10] if solver_data else '—'}")
+        st.caption("📊 Using baked-in 5-date demo")
 
 # =========================================================================
 # Guard: stop if no data yet (user picked Upload but hasn't uploaded)
@@ -457,15 +488,18 @@ IS_MULTI_DATE = isinstance(solver_data.get("dates"), dict) and len(solver_data["
 if IS_MULTI_DATE:
     all_dates = sorted(solver_data["dates"].keys())
     with st.sidebar:
-        st.markdown("---")
-        st.markdown("**Planning date**")
-        st.caption(f"{len(all_dates)} date(s) loaded")
+        st.divider()
+        st.markdown("#### 📊 Current View")
+        st.caption(f"Loaded: **{len(all_dates)} planning date(s)**")
+        # Dynamic stats fill in after the date is selected in the main area
+        _sidebar_stats_slot = st.empty()
 
     # date_view is filled from the top-of-page picker below
     date_view = None
 else:
     date_view = solver_data
     selected_date = solver_data["meta"]["current_date"]
+    _sidebar_stats_slot = None
 
 # =========================================================================
 # Welcome banner — one-line explanation for first-time visitors
@@ -504,6 +538,61 @@ def _label_for_date(date_str):
 def _is_weekend(date_str):
     from datetime import datetime as _dt
     return _dt.strptime(date_str, "%Y-%m-%d").weekday() >= 5
+
+
+# =========================================================================
+# Business rules applied by our model — visible to judges / stakeholders
+# =========================================================================
+
+with st.expander("📋 Business rules applied by our model", expanded=False):
+    rule_col1, rule_col2 = st.columns(2)
+
+    with rule_col1:
+        st.markdown("""
+**🔍 Focus order selection**
+
+- Considers all open orders **except credit-block orders** for which the
+  delivery note is not dropped, from **3 days after current date to 10
+  working days**.
+- Checks inventory availability at the default DC and considers orders
+  with **insufficient inventory** for all customers.
+- Distinguishes between **Full Truckloads (FTLs)** and **Less-Than-
+  Truckloads (LTLs)**.
+- Orders with insufficient inventory **AND** meeting the FTL criteria
+  become **focus orders**.
+- Fines/penalty information is **not** used at classification time.
+- **In-transit and incoming load plans** count toward inventory from the
+  next day. **Incoming dispatch plan** is not considered.
+        """)
+
+    with rule_col2:
+        st.markdown("""
+**🎯 Divert recommendation**
+
+- Priority goes to **soft-allocation orders** — the model tries to fulfil
+  them from the default DC first.
+- Alternate-DC inventory is checked on the **PGI date** AND that
+  sufficient inventory remains for all default orders for the
+  **next 5 days**.
+- A divert is recommended only if it produces **at least a 5% fill-rate
+  increase** at the alternate DC vs the default DC.
+- The optimizer **maximises fulfilment**, **minimises penalty and
+  shipping cost**, and respects **case-pick, pallet-pick, dock, and
+  throughput** constraints at DC level.
+- While diverting orders, **expected PGI will not fall on weekends**
+  (Sat/Sun) where the DCs are not operational — the model **revises PGI
+  to the next working day** to meet the RDD.
+- If a DC has a **throughput constraint**, the model checks available
+  capacity for **3 consecutive days** and adds inventory-available
+  orders to the focus set.
+        """)
+
+    st.caption(
+        "Rules requiring data not in the challenge pack (regional holiday "
+        "calendar, SKU forecast availability at alternate DC) are documented "
+        "as scope, not gaps. The weekend PGI filter is our conservative "
+        "simplification of the holiday-calendar rule."
+    )
 
 
 if IS_MULTI_DATE:
@@ -549,6 +638,86 @@ if IS_MULTI_DATE:
         )
 
     date_view = solver_data["dates"][selected_date]
+
+# ─────────────────────────────────────────────────────────────────────
+# Populate sidebar Current View slot + append Legend / About / Links
+# ─────────────────────────────────────────────────────────────────────
+with st.sidebar:
+    if _sidebar_stats_slot is not None and date_view is not None:
+        # Weekday for selected date
+        from datetime import datetime as _dt
+        _sel_dt = _dt.strptime(selected_date, "%Y-%m-%d")
+        _weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][_sel_dt.weekday()]
+        _weekend_flag = " ⚠️" if _sel_dt.weekday() >= 5 else ""
+        _n_diverts = sum(1 for o in date_view['orders'] if o['action'] == 'divert')
+        _profit_gain = sum(o['profit_delta'] for o in date_view['orders']
+                           if o['action'] == 'divert')
+        _sidebar_stats_slot.markdown(
+            f"<div style='background:#efece6;padding:10px 12px;border-radius:6px;'>"
+            f"<div style='font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.04em;'>"
+            f"Viewing date</div>"
+            f"<div style='font-size:15px;font-weight:600;margin-top:2px;'>"
+            f"{_weekday} · {selected_date}{_weekend_flag}</div>"
+            f"<div style='display:flex;justify-content:space-between;margin-top:10px;font-size:12px;'>"
+            f"<span>Diverts</span><b>{_n_diverts} of {len(date_view['orders'])}</b></div>"
+            f"<div style='display:flex;justify-content:space-between;font-size:12px;'>"
+            f"<span>Certified optimum</span><b>${date_view['meta']['certified_optimum']:,.0f}</b></div>"
+            f"<div style='display:flex;justify-content:space-between;font-size:12px;'>"
+            f"<span>Additional profit</span><b style='color:#167a3a;'>+${_profit_gain:,.0f}</b></div>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+    # ─── Legend ─────────────────────────────────────────────────────
+    st.divider()
+    with st.expander("🎨 Legend & icons", expanded=False):
+        st.markdown("""
+**Recommended actions**
+- 🔄 &nbsp;**DIVERT** — Reassign to alternate DC
+- ✓ &nbsp;**KEEP** — Ship from default DC
+- ⚠ &nbsp;**DO NOT SHIP** — Cannot fulfill
+
+**Date markers**
+- ⚠️ **Weekend** — PGI on Saturday or Sunday, excluded from real recommendations
+
+**Key metrics**
+- **Gap %** — how far below the certified optimum a solver is (lower is better)
+- **F1** — solver agreement with the certified optimum (0.00–1.00, higher is better)
+- **Fill lift** — percentage-point increase in cases fulfilled after reassignment
+- **Profit Δ** — net dollars gained if this recommendation is approved
+        """)
+
+    # ─── About ──────────────────────────────────────────────────────
+    with st.expander("ℹ️ About this app", expanded=False):
+        st.markdown("""
+**Distributed Order Management (DOM)** decides which distribution centre
+fulfils each customer order, subject to inventory, dock capacity,
+throughput, case-pick / pallet-pick limits, and business rules.
+
+**Business rule shown here.** While diverting orders, expected PGI
+(Planned Goods Issue) will not fall on weekends (Saturdays and Sundays)
+where the DCs are not operational.
+
+**How the numbers get here.** A Colab notebook runs QAOA (quantum),
+MILP (classical), and two baselines on the same subinstance, then
+exports the results as JSON. This app renders that JSON with
+plain-English AI explanations for planners.
+        """)
+
+    # ─── Repo links ─────────────────────────────────────────────────
+    with st.expander("🔗 Project links", expanded=False):
+        st.markdown("""
+- [📓 Notebook](https://github.com/HarikaYanamadala/Dom_Planner/tree/main/notebook)
+- [📄 Technical report](https://github.com/HarikaYanamadala/Dom_Planner/tree/main/report)
+- [📊 Result CSVs](https://github.com/HarikaYanamadala/Dom_Planner/tree/main/results)
+- [🌐 GitHub repository](https://github.com/HarikaYanamadala/Dom_Planner)
+        """)
+
+    # ─── Footer ─────────────────────────────────────────────────────
+    if solver_data:
+        gen = solver_data.get("meta", {}).get("generated_at", "")[:10]
+        if gen:
+            st.caption(f"Data generated: {gen}")
 
 # =========================================================================
 # Main area — header + summary metrics
@@ -668,16 +837,38 @@ for order in date_view['orders']:
             pgi = order.get('pgi_date', '—')
             revised_pgi = order.get('revised_pgi_date', pgi)
             rdd = order.get('requested_delivery', '—')
-            revised_note = ""
+
+            # Detect if PGI was revised (weekend → next weekday shift, or lead-time revision)
             if revised_pgi != pgi:
-                revised_note = f"<br><span style='color:#d97706;'>Revised PGI &nbsp; {revised_pgi}</span>"
-            st.markdown(
-                f"<div style='font-size:13px;line-height:1.7;'>"
-                f"Original PGI &nbsp; {pgi}{revised_note}<br>"
-                f"Requested delivery &nbsp; {rdd}"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
+                from datetime import datetime as _dt
+                try:
+                    _orig_dt = _dt.strptime(pgi, "%Y-%m-%d")
+                    _weekday_name = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][_orig_dt.weekday()]
+                    _was_weekend = _orig_dt.weekday() >= 5
+                except Exception:
+                    _weekday_name = ""
+                    _was_weekend = False
+
+                _reason = (f"originally {_weekday_name} (weekend)"
+                           if _was_weekend else "revised for RDD")
+
+                st.markdown(
+                    f"<div style='font-size:13px;line-height:1.7;'>"
+                    f"<span style='color:#999;text-decoration:line-through;'>PGI &nbsp; {pgi}</span> "
+                    f"<span style='font-size:10px;color:#999;'>· {_reason}</span><br>"
+                    f"<b style='color:#d97706;'>🔄 Revised PGI &nbsp; {revised_pgi}</b><br>"
+                    f"Requested delivery &nbsp; {rdd}"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    f"<div style='font-size:13px;line-height:1.7;'>"
+                    f"PGI &nbsp; {pgi}<br>"
+                    f"Requested delivery &nbsp; {rdd}"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
 
         # ── Materials expander ────────────────────────────────────────────
         materials = order.get('materials', [])
