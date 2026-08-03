@@ -140,7 +140,11 @@ _SINGLE_DATE_TEMPLATE = {
 def _build_multi_date_demo():
     """Build a 5-date demo by scaling the single-date template. 2024-06-25 is
     the harder-instance date where MILP and greedy fail to recover the
-    optimum's picks — matches the finding in report §5.3."""
+    optimum's picks — matches the finding in report §5.3. Also shifts each
+    order's PGI / revised PGI / RDD by the offset from 2024-06-17 so the
+    dates make sense for the selected planning date."""
+    from datetime import datetime as _dt, timedelta as _td
+
     # (date, profit multiplier, is_hard_day)
     date_configs = [
         ("2024-06-17", 1.00, False),
@@ -149,6 +153,7 @@ def _build_multi_date_demo():
         ("2024-06-23", 1.03, False),
         ("2024-06-25", 0.58, True),   # smaller instance, greedy/MILP tank
     ]
+    base = _dt.strptime("2024-06-17", "%Y-%m-%d")
     dates = {}
     for date_str, mult, is_hard in date_configs:
         dv = _copy.deepcopy(_SINGLE_DATE_TEMPLATE)
@@ -156,9 +161,19 @@ def _build_multi_date_demo():
         dv["meta"]["certified_optimum"] = int(dv["meta"]["certified_optimum"] * mult)
         for row in dv["comparison"]:
             row["profit"] = int(row["profit"] * mult)
+
+        # Shift PGI-related date fields relative to the target planning date
+        target = _dt.strptime(date_str, "%Y-%m-%d")
+        offset_days = (target - base).days
+
         for order in dv["orders"]:
             order["revenue_delta"] = int(order["revenue_delta"] * mult)
             order["profit_delta"] = int(order["profit_delta"] * mult)
+            for field in ("pgi_date", "revised_pgi_date", "requested_delivery"):
+                if field in order and order[field]:
+                    d = _dt.strptime(order[field], "%Y-%m-%d")
+                    order[field] = (d + _td(days=offset_days)).strftime("%Y-%m-%d")
+
         if is_hard:
             # On the hard day, MILP and greedy pick only 1 of 5 correctly
             for row in dv["comparison"]:
@@ -391,14 +406,10 @@ with st.sidebar:
 
     # ─── Team / project meta ────────────────────────────────────────
     st.markdown(
-        "<div style='background:#f4f1ea;border-left:3px solid #d97706;"
-        "padding:8px 10px;margin:8px 0;border-radius:4px;'>"
-        "<div style='font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.04em;'>Team</div>"
-        "<div style='font-size:14px;font-weight:600;'>Convergence</div>"
-        "<div style='font-size:11px;color:#666;margin-top:4px;'>"
-        "WISER 2026 · Challenge 4</div>"
-        "<div style='font-size:11px;color:#666;'>"
-        "Deliverable 6 · Planner View</div>"
+        "<div style='padding:10px 4px;margin:8px 0;'>"
+        "<div style='font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.06em;'>Team</div>"
+        "<div style='font-size:22px;font-weight:800;color:#000;margin-top:2px;'>Convergence</div>"
+        "<div style='font-size:11px;color:#666;margin-top:4px;'>Nestlé DOM Challenge</div>"
         "</div>",
         unsafe_allow_html=True,
     )
@@ -507,10 +518,10 @@ else:
 
 st.markdown("""
 <div style="background: linear-gradient(90deg, #f4f1ea, #efece6);
-            padding: 14px 18px; border-radius: 6px; margin-bottom: 8px;
-            border-left: 4px solid #d97706;">
-  <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">
-    Welcome to the Nestlé DOM Planner 🚚
+            padding: 16px 20px; border-radius: 6px; margin-bottom: 8px;
+            border-left: 4px solid #000;">
+  <div style="font-size: 22px; font-weight: 800; color: #000; margin-bottom: 6px;">
+    Welcome to Nestlé DOM Planner 🚚
   </div>
   <div style="font-size: 13px; color: #444;">
     See which orders our optimizer recommends reassigning to a different distribution center,
@@ -668,9 +679,26 @@ with st.sidebar:
             unsafe_allow_html=True,
         )
 
-    # ─── Legend ─────────────────────────────────────────────────────
+    # ─── About (moved to first per team preference) ─────────────────
     st.divider()
-    with st.expander("🎨 Legend & icons", expanded=False):
+    with st.expander("ℹ️ About this app", expanded=True):
+        st.markdown("""
+**Distributed Order Management (DOM)** decides which distribution centre
+fulfils each customer order, subject to inventory, dock capacity,
+throughput, case-pick / pallet-pick limits, and business rules.
+
+**Business rule shown here.** While diverting orders, expected PGI
+(Planned Goods Issue) will not fall on weekends (Saturdays and Sundays)
+where the DCs are not operational.
+
+**How the numbers get here.** A Colab notebook runs QAOA (quantum),
+MILP (classical), and two baselines on the same subinstance, then
+exports the results as JSON. This app renders that JSON with
+plain-English AI explanations for planners.
+        """)
+
+    # ─── Quick reference (was "Legend & icons") ─────────────────────
+    with st.expander("📖 Quick reference", expanded=False):
         st.markdown("""
 **Recommended actions**
 - 🔄 &nbsp;**DIVERT** — Reassign to alternate DC
@@ -685,23 +713,6 @@ with st.sidebar:
 - **F1** — solver agreement with the certified optimum (0.00–1.00, higher is better)
 - **Fill lift** — percentage-point increase in cases fulfilled after reassignment
 - **Profit Δ** — net dollars gained if this recommendation is approved
-        """)
-
-    # ─── About ──────────────────────────────────────────────────────
-    with st.expander("ℹ️ About this app", expanded=False):
-        st.markdown("""
-**Distributed Order Management (DOM)** decides which distribution centre
-fulfils each customer order, subject to inventory, dock capacity,
-throughput, case-pick / pallet-pick limits, and business rules.
-
-**Business rule shown here.** While diverting orders, expected PGI
-(Planned Goods Issue) will not fall on weekends (Saturdays and Sundays)
-where the DCs are not operational.
-
-**How the numbers get here.** A Colab notebook runs QAOA (quantum),
-MILP (classical), and two baselines on the same subinstance, then
-exports the results as JSON. This app renders that JSON with
-plain-English AI explanations for planners.
         """)
 
     # ─── Repo links ─────────────────────────────────────────────────
@@ -975,7 +986,7 @@ def render_planner_html(data, explanations):
 </head><body>
 <h1>Distributed Order Management — Recommended Reassignments</h1>
 <div class="lede">Planning date <strong>{data['meta']['current_date']}</strong>.
-{data['meta']['n_orders_reviewed']} focus orders reviewed. Prepared by the WISER 2026 QAOA arm.</div>
+{data['meta']['n_orders_reviewed']} focus orders reviewed. Prepared by team Convergence.</div>
 
 <div class="kpis">
   <div class="kpi"><div class="label">Additional profit if approved</div>
@@ -995,7 +1006,7 @@ def render_planner_html(data, explanations):
   <tbody>{order_rows}</tbody>
 </table>
 
-<footer>Nestlé DOM · WISER Quantum+AI 2026 · Solver: QAOA + MILP + Baselines</footer>
+<footer>Nestlé DOM · Team Convergence · Solver: QAOA + MILP + Baselines</footer>
 </body></html>"""
 
 st.markdown("---")
@@ -1210,6 +1221,6 @@ if st.session_state.chat_history:
 # =========================================================================
 
 st.markdown("---")
-st.caption("Built for the Nestlé <> WISER Quantum+AI 2026 Challenge. "
+st.caption("Built for the Nestlé Distributed Order Management Challenge. "
            "Model-agnostic: works with QAOA, MILP, or any solver whose output "
            "matches the notebook's export schema.")
