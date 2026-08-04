@@ -69,7 +69,7 @@ accompanying technical report.
 │
 ├── .gitignore
 ├── README.md                         
-└── requirements.txt                   # Root dependencies for the notebook
+└── requirements_root.txt                   # Root dependencies for the notebook
 ```
 
 ## Data
@@ -143,7 +143,7 @@ streamlit run app.py
 
 ## Running the notebook
 
-1. Open [`notebook/Nestle-DOM-(QAOA+MILP).ipynb`](notebook/Nestle-DOM-(QAOA+MILP).ipynb)
+1. Open [`notebook/Nestle_DOM_QAOA_MILP).ipynb`](notebook/Nestle-DOM-(QAOA+MILP).ipynb)
    in Google Colab (or Jupyter with the packages in the root `requirements.txt`
    installed).
 2. Place the 7 input CSVs in a Google Drive folder; update `DRIVE_FOLDER` in the
@@ -158,7 +158,7 @@ streamlit run app.py
 
 ## Requirements
 
-- **[`requirements.txt`](requirements.txt)**:
+- **[`requirements_root.txt`](requirements_root.txt)**:
   - `qiskit==2.5.1`, `qiskit-aer==0.17.2` - QAOA circuit construction and simulation
   - `pulp==2.9.0` — MILP formulation, solved via the bundled CBC solver
   - `pandas`, `numpy`, `matplotlib` - data handling and plotting
