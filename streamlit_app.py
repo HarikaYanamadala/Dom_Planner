@@ -1,4 +1,4 @@
-"""Nestlé DOM — Planner View (Streamlit + Gemini)
+"""Nestlé DOM - Planner View (Streamlit + Gemini)
 
 Reads solver output JSON produced by the notebook, shows recommended
 reassignments with AI-generated plain-English explanations for planners.
