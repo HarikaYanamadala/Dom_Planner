@@ -63,7 +63,10 @@ _SINGLE_DATE_TEMPLATE = {
          "penalty_delta": -8000, "fill_before_pct": 50, "fill_after_pct": 95,
          "cases_demanded": 2422, "profit_delta": 49400,
          "customer": "Northgate Retail Group", "priority": 8,
-         "pgi_date": "2024-06-20", "revised_pgi_date": "2024-06-21",
+         # All 5 orders in the subinstance share the SAME effective PGI (2024-06-24 Mon)
+         # — matches notebook's busiest_pgi selection. Some orders had a weekend
+         # PGI in the raw data that got revised to this Monday.
+         "pgi_date": "2024-06-22", "revised_pgi_date": "2024-06-24",  # Sat → Mon
          "requested_delivery": "2024-06-27",
          "materials": [
              {"sku": "11002742", "name": "Nescafé Gold Blend 200g",
@@ -78,7 +81,7 @@ _SINGLE_DATE_TEMPLATE = {
          "penalty_delta": -15000, "fill_before_pct": 45, "fill_after_pct": 98,
          "cases_demanded": 7372, "profit_delta": 103200,
          "customer": "Southern Grocery Alliance", "priority": 8,
-         "pgi_date": "2024-06-20", "revised_pgi_date": "2024-06-20",
+         "pgi_date": "2024-06-24", "revised_pgi_date": "2024-06-24",  # already Mon
          "requested_delivery": "2024-06-28",
          "materials": [
              {"sku": "11003554", "name": "Nesquik Chocolate Powder 500g",
@@ -95,7 +98,7 @@ _SINGLE_DATE_TEMPLATE = {
          "penalty_delta": -6000, "fill_before_pct": 55, "fill_after_pct": 92,
          "cases_demanded": 3667, "profit_delta": 37600,
          "customer": "Metro Wholesale Partners", "priority": 6,
-         "pgi_date": "2024-06-21", "revised_pgi_date": "2024-06-24",
+         "pgi_date": "2024-06-23", "revised_pgi_date": "2024-06-24",  # Sun → Mon
          "requested_delivery": "2024-06-27",
          "materials": [
              {"sku": "11008863", "name": "San Pellegrino Sparkling 750ml",
@@ -110,7 +113,7 @@ _SINGLE_DATE_TEMPLATE = {
          "penalty_delta": -11000, "fill_before_pct": 40, "fill_after_pct": 96,
          "cases_demanded": 5714, "profit_delta": 61100,
          "customer": "Coastal Foods Distribution", "priority": 8,
-         "pgi_date": "2024-06-20", "revised_pgi_date": "2024-06-21",
+         "pgi_date": "2024-06-24", "revised_pgi_date": "2024-06-24",  # already Mon
          "requested_delivery": "2024-06-26",
          "materials": [
              {"sku": "11007821", "name": "Nespresso Original 100 pods",
@@ -125,7 +128,7 @@ _SINGLE_DATE_TEMPLATE = {
          "penalty_delta": -2500, "fill_before_pct": 60, "fill_after_pct": 100,
          "cases_demanded": 1197, "profit_delta": 10800,
          "customer": "Prairie Distributors", "priority": 5,
-         "pgi_date": "2024-06-20", "revised_pgi_date": "2024-06-20",
+         "pgi_date": "2024-06-24", "revised_pgi_date": "2024-06-24",  # already Mon
          "requested_delivery": "2024-06-25",
          "materials": [
              {"sku": "11004120", "name": "Pure Life Water 500ml × 24",
@@ -177,16 +180,15 @@ def _build_multi_date_demo():
             order["revenue_delta"] = int(order["revenue_delta"] * mult)
             order["profit_delta"] = int(order["profit_delta"] * mult)
 
-            # PGI dates: shift by offset, then bump off weekends
+            # PGI dates: shift by offset (revised PGI enforced to weekday below)
             if "pgi_date" in order and order["pgi_date"]:
                 shifted = _dt.strptime(order["pgi_date"], "%Y-%m-%d") + _td(days=offset_days)
-                shifted = _to_next_weekday(shifted)
                 order["pgi_date"] = shifted.strftime("%Y-%m-%d")
             if "revised_pgi_date" in order and order["revised_pgi_date"]:
                 shifted = _dt.strptime(order["revised_pgi_date"], "%Y-%m-%d") + _td(days=offset_days)
                 shifted = _to_next_weekday(shifted)
                 order["revised_pgi_date"] = shifted.strftime("%Y-%m-%d")
-            # RDD: shift by offset (RDD can fall on any day — customers set it)
+            # RDD: shift by offset (customers set this, can be any day)
             if "requested_delivery" in order and order["requested_delivery"]:
                 d = _dt.strptime(order["requested_delivery"], "%Y-%m-%d") + _td(days=offset_days)
                 order["requested_delivery"] = d.strftime("%Y-%m-%d")
@@ -927,7 +929,7 @@ for order in date_view['orders']:
             revised_pgi = order.get('revised_pgi_date', pgi)
             rdd = order.get('requested_delivery', '—')
 
-            # Detect if PGI was revised (weekend → next weekday shift, or lead-time revision)
+            # Detect if PGI was revised (weekend → next weekday per business rule)
             if revised_pgi != pgi:
                 from datetime import datetime as _dt
                 try:
@@ -965,12 +967,10 @@ for order in date_view['orders']:
             with st.expander(f"📋 Materials — {len(materials)} SKU{'s' if len(materials)!=1 else ''}, "
                              f"{sum(m['cases_ordered'] for m in materials):,} cases ordered"):
                 mat_df = pd.DataFrame(materials)
-                mat_df["ordered_cases"] = mat_df["cases_ordered"]
-                mat_df["filled_cases"] = mat_df["cases_filled"]
                 mat_df["fill_%"] = (mat_df["cases_filled"] / mat_df["cases_ordered"] * 100).round(1)
                 mat_df["shortfall"] = mat_df["cases_ordered"] - mat_df["cases_filled"]
                 mat_df["line_revenue"] = (mat_df["cases_filled"] * mat_df["price_per_case"]).round(0)
-                display_df = mat_df[["sku", "name", "ordered_cases", "filled_cases",
+                display_df = mat_df[["sku", "name", "cases_ordered", "cases_filled",
                                      "shortfall", "fill_%", "price_per_case", "line_revenue"]]
                 display_df.columns = ["SKU", "Product", "Ordered", "Filled",
                                        "Shortfall", "Fill %", "$/case", "Revenue"]
