@@ -1,3 +1,22 @@
+# ---- Jupyter / Colab ----
+.ipynb_checkpoints/
+
+# Nestlé PoC input data pack (business-sensitive, kept in Google Drive instead)
+input_order_data.csv
+input_capacity_planning.csv
+input_dock_capacity.csv
+input_shipping_cost_data.csv
+input_throughput_capacity.csv
+output_order_level_data_ground_truth.csv
+output_order_sku_level_data_ground_truth.csv
+
+# Note: this does NOT block results/*.csv, since those live in a subfolder
+/*.csv
+
+# ---- OS / editor clutter (harmless to keep, in case you ever browse locally) ----
+.DS_Store
+Thumbs.db
+
 # Python
 __pycache__/
 *.py[cod]
