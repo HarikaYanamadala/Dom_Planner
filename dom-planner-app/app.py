@@ -798,8 +798,8 @@ plain-English AI explanations for planners.
     # ─── Repo links ─────────────────────────────────────────────────
     with st.expander("🔗 Project links", expanded=False):
         st.markdown("""
-- [📓 Notebook](https://github.com/HarikaYanamadala/Dom_Planner/tree/main/notebook)
-- [📄 Technical report](https://github.com/HarikaYanamadala/Dom_Planner/tree/main/report)
+- [📓 Notebook](https://github.com/HarikaYanamadala/Dom_Planner/blob/main/notebook/Nestle_DOM_QAOA_MILP.ipynb)
+- [📄 Technical report](https://github.com/HarikaYanamadala/Dom_Planner/blob/main/report/Nestle_DOM_Technical_Report.pdf)
 - [📊 Result CSVs](https://github.com/HarikaYanamadala/Dom_Planner/tree/main/results)
 - [🌐 GitHub repository](https://github.com/HarikaYanamadala/Dom_Planner)
         """)
