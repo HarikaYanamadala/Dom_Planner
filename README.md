@@ -66,7 +66,7 @@ accompanying technical report.
 │   └── noise_study_all_dates.csv
 │
 ├── .gitignore
-├── README.md                          # This file
+├── README.md                         
 └── requirements.txt                   # Root dependencies for the notebook
 ```
 
