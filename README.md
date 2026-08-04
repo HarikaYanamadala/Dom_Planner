@@ -1,8 +1,10 @@
-# Nestlé DOM — Hybrid QAOA + MILP
+# Nestlé DOM - Hybrid QAOA + MILP
 
-Nestlé Distributed Order Management Challenge — Quantum Optimization Solution
+WISER Global Quantum+AI Program 2026 - Nestlé × WISER
 
-Team: **Convergence**
+Challenge 4:Quantum Optimization for Distributed Order Management
+
+Team: **The Convergents**
 
 **Live app:** [domplanner-convergence.streamlit.app](https://domplanner-convergence.streamlit.app)
 
@@ -44,12 +46,11 @@ accompanying technical report.
 ```
 .
 ├── dom-planner-app/                   # Interactive planner-view Streamlit app
-│   ├── app.py                          # Streamlit app entry point
-│   ├── requirements.txt                # App dependencies
-│   └── readme.md                       # Component-by-component app documentation
+│   ├── requirements.txt               # App dependencies                      
+│   └── app.py                         # code for app
 │
 ├── notebook/                          # Main runnable notebook
-│   └── Nestle-DOM-(QAOA+MILP).ipynb
+│   └── Nestle_DOM_QAOA_MILP.ipynb
 │
 ├── Report/                            # Full technical report
 │   └── Nestle-DOM-Technical-Report.pdf
@@ -74,46 +75,90 @@ accompanying technical report.
 The notebook expects 5 input files and 2 optional ground-truth files,
 joined on distribution center, SKU, and date:
 
-**Required inputs:**
-- `input_order_data.csv` — customer orders with material, quantity, and date
-- `input_capacity_planning.csv` — DC inventory over time (SKU × DC × date)
-- `input_dock_capacity.csv` — DC dock utilization limits (DC × date)
-- `input_shipping_cost_data.csv` — freight cost table (ZIP × DC)
-- `input_throughput_capacity.csv` — case-pick / pallet-pick throughput (DC × date)
-
-**Optional ground truth (for the §1 planner-history diagnostic):**
-- `output_order_level_data_GROUND_TRUTH.csv`
-- `output_order_sku_level_data_GROUND_TRUTH.csv`
+| File | Contents |
+|---|---|
+| `input_order_data.csv` | Open orders: order ID, SKU demand, default DC, PGI date, revenue |
+| `input_capacity_planning.csv` | Available inventory by DC / SKU / date |
+| `input_dock_capacity.csv` | Dock appointment capacity per DC, per date |
+| `input_shipping_cost_data.csv` | Shipping cost per (order, candidate DC) pair |
+| `input_throughput_capacity.csv` | Case-pick / pallet-pick capacity per DC, per date |
+| `output_order_level_data_ground_truth.csv` *(optional)* | Historical planner decisions, order-level |
+| `output_order_sku_level_data_ground_truth.csv` *(optional)* | Historical planner decisions, SKU-level |
 
 Data files are not included in this repo (proprietary to the challenge
 data pack). Upload them when prompted by the notebook.
 
-## Running the notebook
+## Results
 
-The notebook is designed for Google Colab:
+Every solver run exports its results to CSV via a `save_result()` helper built
+into the notebook - each date you run gets its own file, and everything also
+folds into a cumulative `*_all_dates.csv` per table (re-running a date replaces
+just that date's rows, so nothing duplicates). The `Results/` folder here holds
+the cumulative files across all 5 target dates:
 
-1. Open `notebook/Nestle-DOM-(QAOA+MILP).ipynb` in Colab
-2. Runtime → Run all
-3. When prompted, upload the 7 CSV files from the challenge data pack
-4. Runtime: ~15 minutes end-to-end on free Colab CPU
+| File | What's in it |
+|---|---|
+| `comparison_all_dates.csv` | Objective, gap, fill rate, penalty, shipping, precision/recall/F1 - one row per solver per date |
+| `order_level_all_dates.csv` | Order-by-order DC picks, every solver vs. the certified optimum |
+| `qubit_scaling_all_dates.csv` | Qubit count and classical search-space size, projected across order counts |
+| `robustness_all_dates.csv` | QAOA results across 5 random seeds, per date |
+| `robustness_summary_all_dates.csv` | Mean ± std of the above, per solver per date |
+| `run_summary_all_dates.csv` | One-row-per-date scalar snapshot (certified optimum, baselines, MILP, QAOA) |
+| `noise_study_all_dates.csv` | QAOA constraint-preservation under simulated two-qubit gate error (12-qubit instance) |
 
-Results are saved to `Results/` — CSVs for cumulative outputs and PNGs
-for figures.
+## Deliverables / Artifacts
 
-## Running the app
+- 📓 [`notebook/Nestle_DOM_QAOA_MILP.ipynb`](notebook/Nestle-DOM-(QAOA+MILP).ipynb) - End-to-end executable notebook
+- 📄 [`Report/Nestle_DOM_Technical_Report.pdf`](Report/Nestle-DOM-Technical-Report.pdf) - full technical report (business summary, formulation, results, scaling & noise analysis, key insights)
+- 📊 `Results/*.csv` - raw solver outputs backing every chart/table in the report
+- 🖥️ **[Interactive Planner View App](#planner-view-app)** - Visual planning interface
+- 🖼️ Slide deck - *(add link here once finalized)*
 
-The Streamlit app renders the notebook's JSON output for planners:
+## Planner View App
+The DOM_Planner App is delivered here as an **interactive
+Streamlit app** rather than a static page, so a planner can actually explore the
+results instead of just reading a summary.
 
-**Live URL:** [domplanner-convergence.streamlit.app](https://domplanner-convergence.streamlit.app)
+**🔗 Live app: https://domplanner-convergence.streamlit.app **
 
-**Local:**
+**Features and Capabilities:**
+- Pick any of the 5 planning dates and drill into that date's results
+- Step through each diverted order's details - which DC it moved to and why
+- Compare solvers (baselines, QAOA, MILP) side by side with built-in charts
+- Read an AI-generated executive summary of that date's results
+- See key insights and links back to the project's other deliverables
+- Download a self-contained HTML snapshot of the planner view for any selected date
+
+Source code, its own setup notes, and app-specific dependencies live in
+[`DOM-planner App/`](DOM-planner%20App/). To run it locally:
+
 ```bash
-cd dom-planner-app
+cd "DOM-planner App"
 pip install -r requirements.txt
-streamlit run app.py
+dom_planner_app.ipynb   
 ```
 
-See `dom-planner-app/readme.md` for component-by-component documentation.
+## Running the notebook
+
+1. Open [`notebook/Nestle-DOM-(QAOA+MILP).ipynb`](notebook/Nestle-DOM-(QAOA+MILP).ipynb)
+   in Google Colab (or Jupyter with the packages in the root `requirements.txt`
+   installed).
+2. Place the 7 input CSVs in a Google Drive folder; update `DRIVE_FOLDER` in the
+   "Point to the CSVs" cell.
+3. In the "Configure and build" cell, set `cfg.current_date` to the planning date
+   you want to run (one of the 5 target dates, or any date present in the data).
+4. Run all cells top to bottom. Results save automatically to `Results/` under
+   your Drive folder.
+5. Repeat steps 3–4 for each additional date you want to compare.
+6. The notebook's results section reads back everything saved so far and
+   builds a cross-date comparison.
+
+## Requirements
+
+- **[`requirements.txt`](requirements.txt)**:
+  - `qiskit==2.5.1`, `qiskit-aer==0.17.2` - QAOA circuit construction and simulation
+  - `pulp==2.9.0` — MILP formulation, solved via the bundled CBC solver
+  - `pandas`, `numpy`, `matplotlib` - data handling and plotting
 
 ## Business rules implemented
 
@@ -131,6 +176,10 @@ methodology:
 - Case-pick and pallet-pick capacity constraints
 - Dock capacity per DC-date
 
-Rules requiring data not in the challenge pack (regional holiday calendar,
-SKU forecast availability at alternate DC) are documented as scope
-simplifications in the report.
+## Team
+
+**The Convergents**
+
+*Harika Yanamadala*
+
+*Induja Bhanu Kodavati*
