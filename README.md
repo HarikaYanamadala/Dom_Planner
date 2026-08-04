@@ -48,6 +48,7 @@ accompanying technical report.
 ├── dom-planner-app/                   # Interactive planner-view Streamlit app
 │   ├── requirements.txt               # App dependencies                      
 │   └── app.py                         # code for app
+│   └── Planner views of each date                        
 │
 ├── notebook/                          # Main runnable notebook
 │   └── Nestle_DOM_QAOA_MILP.ipynb
@@ -113,7 +114,7 @@ the cumulative files across all 5 target dates:
 - 📄 [`Report/Nestle_DOM_Technical_Report.pdf`](Report/Nestle-DOM-Technical-Report.pdf) - full technical report (business summary, formulation, results, scaling & noise analysis, key insights)
 - 📊 `Results/*.csv` - raw solver outputs backing every chart/table in the report
 - 🖥️ **[Interactive Planner View App](#planner-view-app)** - Visual planning interface
-- 🖼️ Slide deck - *DOM Planner presentation*
+- 🖼️ [`Report/The_Convergents_DOM.pptx`](Report/The_Convergents_DOM.pptx)- *Slide Deck - DOM Planner presentation*
 
 ## Planner View App
 The DOM_Planner App is delivered here as an **interactive
