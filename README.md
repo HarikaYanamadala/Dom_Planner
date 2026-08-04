@@ -53,7 +53,7 @@ accompanying technical report.
 │   └── Nestle_DOM_QAOA_MILP.ipynb
 │
 ├── Report/                            # Full technical report
-│   └── Nestle-DOM-Technical-Report.pdf
+│   └── Nestle_DOM_Technical_Report.pdf
 │
 ├── Results/                           # Solver outputs across 5 planning dates
 │   ├── figures/                        # Figures 1-8 (attached in report)
@@ -130,12 +130,12 @@ results instead of just reading a summary.
 - Download a self-contained HTML snapshot of the planner view for any selected date
 
 Source code, its own setup notes, and app-specific dependencies live in
-[`DOM-planner App/`](DOM-planner%20App/). To run it locally:
+[`dom-planner-app/`](dom-planner-app/). To run it locally:
 
 ```bash
-cd "DOM-planner App"
+cd dom-planner-app
 pip install -r requirements.txt
-dom_planner_app.ipynb   
+streamlit run app.py
 ```
 
 ## Running the notebook
