@@ -427,7 +427,7 @@ with st.sidebar:
     st.markdown(
         "<div style='padding:10px 4px;margin:8px 0;'>"
         "<div style='font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.06em;'>Team</div>"
-        "<div style='font-size:22px;font-weight:800;color:#000;margin-top:2px;'>Convergence</div>"
+        "<div style='font-size:22px;font-weight:800;color:#000;margin-top:2px;'>Convergents</div>"
         "<div style='font-size:11px;color:#666;margin-top:4px;'>Nestlé DOM Challenge</div>"
         "</div>",
         unsafe_allow_html=True,
@@ -599,7 +599,7 @@ st.markdown(f"""
     </div>
     <div style="text-align:right; min-width:120px;">
       <div style="font-size:11px; color:#94a3b8; letter-spacing:.06em; margin-bottom:2px;">TEAM</div>
-      <div style="font-size:24px; font-weight:800; letter-spacing:-0.5px;">Convergence</div>
+      <div style="font-size:24px; font-weight:800; letter-spacing:-0.5px;">Convergents</div>
       <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Nestlé DOM Challenge</div>
     </div>
   </div>
@@ -1064,7 +1064,7 @@ def render_planner_html(data, explanations):
 </head><body>
 <h1>Distributed Order Management — Recommended Reassignments</h1>
 <div class="lede">Planning date <strong>{data['meta']['current_date']}</strong>.
-{data['meta']['n_orders_reviewed']} focus orders reviewed. Prepared by team Convergence.</div>
+{data['meta']['n_orders_reviewed']} focus orders reviewed. Prepared by team Convergents.</div>
 
 <div class="kpis">
   <div class="kpi"><div class="label">Additional profit if approved</div>
@@ -1084,7 +1084,7 @@ def render_planner_html(data, explanations):
   <tbody>{order_rows}</tbody>
 </table>
 
-<footer>Nestlé DOM · Team Convergence · Solver: QAOA + MILP + Baselines</footer>
+<footer>Nestlé DOM · Team Convergents · Solver: QAOA + MILP + Baselines</footer>
 </body></html>"""
 
 st.markdown("---")
