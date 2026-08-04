@@ -128,7 +128,8 @@ results instead of just reading a summary.
 - Compare solvers (baselines, QAOA, MILP) side by side with built-in charts
 - Read an AI-generated executive summary of that date's results
 - See key insights and links back to the project's other deliverables
-- Download a self-contained HTML snapshot of the planner view for any selected date
+- **Download a self-contained HTML snapshot of the planner view for any selected date**
+
 
 Source code, its own setup notes, and app-specific dependencies live in
 [`dom-planner-app/`](dom-planner-app/). To run it locally:
