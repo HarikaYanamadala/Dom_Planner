@@ -54,6 +54,7 @@ accompanying technical report.
 │
 ├── Report/                            # Full technical report
 │   └── Nestle_DOM_Technical_Report.pdf
+│   └── The_Convergents_DOM.pptx
 │
 ├── Results/                           # Solver outputs across 5 planning dates
 │   ├── figures/                        # Figures 1-8 (attached in report)
@@ -112,7 +113,7 @@ the cumulative files across all 5 target dates:
 - 📄 [`Report/Nestle_DOM_Technical_Report.pdf`](Report/Nestle-DOM-Technical-Report.pdf) - full technical report (business summary, formulation, results, scaling & noise analysis, key insights)
 - 📊 `Results/*.csv` - raw solver outputs backing every chart/table in the report
 - 🖥️ **[Interactive Planner View App](#planner-view-app)** - Visual planning interface
-- 🖼️ Slide deck - *(add link here once finalized)*
+- 🖼️ Slide deck - *DOM Planner presentation*
 
 ## Planner View App
 The DOM_Planner App is delivered here as an **interactive
