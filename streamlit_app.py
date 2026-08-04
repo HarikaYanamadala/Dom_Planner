@@ -166,13 +166,30 @@ def _build_multi_date_demo():
         target = _dt.strptime(date_str, "%Y-%m-%d")
         offset_days = (target - base).days
 
+        # Business rule enforcement helper — same rule the notebook enforces
+        # for real orders. Any weekend PGI gets pushed to next Monday.
+        def _to_next_weekday(day):
+            if day.weekday() == 5: return day + _td(days=2)  # Sat → Mon
+            if day.weekday() == 6: return day + _td(days=1)  # Sun → Mon
+            return day
+
         for order in dv["orders"]:
             order["revenue_delta"] = int(order["revenue_delta"] * mult)
             order["profit_delta"] = int(order["profit_delta"] * mult)
-            for field in ("pgi_date", "revised_pgi_date", "requested_delivery"):
-                if field in order and order[field]:
-                    d = _dt.strptime(order[field], "%Y-%m-%d")
-                    order[field] = (d + _td(days=offset_days)).strftime("%Y-%m-%d")
+
+            # PGI dates: shift by offset, then bump off weekends
+            if "pgi_date" in order and order["pgi_date"]:
+                shifted = _dt.strptime(order["pgi_date"], "%Y-%m-%d") + _td(days=offset_days)
+                shifted = _to_next_weekday(shifted)
+                order["pgi_date"] = shifted.strftime("%Y-%m-%d")
+            if "revised_pgi_date" in order and order["revised_pgi_date"]:
+                shifted = _dt.strptime(order["revised_pgi_date"], "%Y-%m-%d") + _td(days=offset_days)
+                shifted = _to_next_weekday(shifted)
+                order["revised_pgi_date"] = shifted.strftime("%Y-%m-%d")
+            # RDD: shift by offset (RDD can fall on any day — customers set it)
+            if "requested_delivery" in order and order["requested_delivery"]:
+                d = _dt.strptime(order["requested_delivery"], "%Y-%m-%d") + _td(days=offset_days)
+                order["requested_delivery"] = d.strftime("%Y-%m-%d")
 
         if is_hard:
             # On the hard day, MILP and greedy pick only 1 of 5 correctly
