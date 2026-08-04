@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+build/
+dist/
+
+# Environments
+venv/
+env/
+.venv/
+.env
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Colab / Jupyter
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data files (proprietary to challenge — never commit)
+input_*.csv
+Output_*.csv
+output_*.csv
+
+# Local scratch outputs (regeneratable from the notebook)
+solver_output.json
+solver_output_multi.json
+planner_view_*.html
