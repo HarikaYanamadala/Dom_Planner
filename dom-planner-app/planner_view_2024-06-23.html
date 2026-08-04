@@ -1,0 +1,81 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Nestlé DOM Planner View</title>
+<style>
+  body { font: 14px/1.5 system-ui, sans-serif; color: #1a1a1a;
+         max-width: 1000px; margin: 32px auto; padding: 0 24px; background: #faf8f4; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .lede { color: #666; font-size: 13px; margin-bottom: 24px; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi { background: white; padding: 12px 14px; border: 1px solid #d8d4cc; border-radius: 4px; }
+  .kpi .label { font-size: 10px; text-transform: uppercase; color: #666; letter-spacing: .04em; }
+  .kpi .value { font-size: 20px; font-weight: 600; margin-top: 2px; }
+  table { width: 100%; background: white; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #d8d4cc; vertical-align: top; }
+  th { background: #efece6; font-size: 11px; text-transform: uppercase;
+        letter-spacing: .04em; color: #666; }
+  td.mono { font-family: SF Mono, Menlo, monospace; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .gain { color: #167a3a; font-weight: 600; }
+  footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #d8d4cc;
+            font-size: 11px; color: #666; }
+</style>
+</head><body>
+<h1>Distributed Order Management — Recommended Reassignments</h1>
+<div class="lede">Planning date <strong>2024-06-23</strong>.
+5 focus orders reviewed. Prepared by team Convergents.</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="label">Additional profit if approved</div>
+       <div class="value">+$269,963</div></div>
+  <div class="kpi"><div class="label">Diverts recommended</div>
+       <div class="value">5
+       of 5</div></div>
+  <div class="kpi"><div class="label">Certified optimum</div>
+       <div class="value">$1,012,260</div></div>
+  <div class="kpi"><div class="label">Report generated</div>
+       <div class="value">2026-08-04</div></div>
+</div>
+
+<table>
+  <thead><tr><th>Order</th><th>Default → Recommended</th><th style="text-align:right">Fill</th>
+             <th style="text-align:right">Profit gain</th><th>Why</th></tr></thead>
+  <tbody>
+        <tr>
+          <td>...881894</td>
+          <td class="mono">5420 → 5641</td>
+          <td class="num">50% → <strong>95%</strong></td>
+          <td class="num"><span class="gain">+$50,882</span></td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>...889814</td>
+          <td class="mono">5410 → 5420</td>
+          <td class="num">45% → <strong>98%</strong></td>
+          <td class="num"><span class="gain">+$106,296</span></td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>...884906</td>
+          <td class="mono">5410 → 5420</td>
+          <td class="num">55% → <strong>92%</strong></td>
+          <td class="num"><span class="gain">+$38,728</span></td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>...495964</td>
+          <td class="mono">5410 → 5490</td>
+          <td class="num">40% → <strong>96%</strong></td>
+          <td class="num"><span class="gain">+$62,933</span></td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>...597603</td>
+          <td class="mono">5083 → 5420</td>
+          <td class="num">60% → <strong>100%</strong></td>
+          <td class="num"><span class="gain">+$11,124</span></td>
+          <td>—</td>
+        </tr></tbody>
+</table>
+
+<footer>Nestlé DOM · Team Convergents · Solver: QAOA + MILP + Baselines</footer>
+</body></html>
