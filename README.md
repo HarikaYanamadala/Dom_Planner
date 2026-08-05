@@ -2,7 +2,7 @@
 
 WISER Global Quantum+AI Program 2026 - Nestlé × WISER
 
-Challenge 4:Quantum Optimization for Distributed Order Management
+Challenge - 4:Quantum Optimization for Distributed Order Management
 
 Team: **The Convergents**
 
@@ -13,7 +13,7 @@ Team: **The Convergents**
 ## Overview
 
 Nestlé's Distributed Order Management (DOM) problem focuses on selecting
-the best alternate distribution center (DC) when the default DC cannot
+the best alternate distribution centre (DC) when the default DC cannot
 completely fulfil an order, to maximize fulfilment value while accounting
 for shipping costs and penalties associated with unmet demand.
 
@@ -108,7 +108,7 @@ the cumulative files across all 5 target dates:
 | `run_summary_all_dates.csv` | One-row-per-date scalar snapshot (certified optimum, baselines, MILP, QAOA) |
 | `noise_study_all_dates.csv` | QAOA constraint-preservation under simulated two-qubit gate error (12-qubit instance) |
 
-## Deliverables / Artifacts
+## Deliverables
 
 - 📓 [`notebook/Nestle_DOM_QAOA_MILP.ipynb`](notebook/Nestle-DOM-(QAOA+MILP).ipynb) - End-to-end executable notebook
 - 📄 [`Report/Nestle_DOM_Technical_Report.pdf`](Report/Nestle-DOM-Technical-Report.pdf) - full technical report (business summary, formulation, results, scaling & noise analysis, key insights)
@@ -124,12 +124,12 @@ results instead of just reading a summary.
 **🔗 Live app: https://domplanner-convergence.streamlit.app **
 
 **Features and Capabilities:**
+- **Download a self-contained HTML snapshot of the planner view for any selected date**
 - Pick any of the 5 planning dates and drill into that date's results
 - Step through each diverted order's details - which DC it moved to and why
 - Compare solvers (baselines, QAOA, MILP) side by side with built-in charts
 - Read an AI-generated executive summary of that date's results
 - See key insights and links back to the project's other deliverables
-- **Download a self-contained HTML snapshot of the planner view for any selected date**
 
 
 Source code, its own setup notes, and app-specific dependencies live in
@@ -150,9 +150,9 @@ streamlit run app.py
    "Point to the CSVs" cell.
 3. In the "Configure and build" cell, set `cfg.current_date` to the planning date
    you want to run (one of the 5 target dates, or any date present in the data).
-4. Run all cells top to bottom. Results save automatically to `Results/` under
+4. Run all cells top to bottom. Results are saved automatically to `Results/` under
    your Drive folder.
-5. Repeat steps 3–4 for each additional date you want to compare.
+5. **Repeat steps 3–4 for each additional date you want to compare.**
 6. The notebook's results section reads back everything saved so far and
    builds a cross-date comparison.
 
@@ -183,6 +183,6 @@ methodology:
 
 **The Convergents**
 
-*Harika Yanamadala*
+*Harika Srilakshmi Durga Yanamadala*
 
 *Induja Bhanu Kodavati*
