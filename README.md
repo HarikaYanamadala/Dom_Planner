@@ -183,6 +183,6 @@ methodology:
 
 **The Convergents**
 
-*Harika Srilakshmi Durga Yanamadala*
+*Harika Srilakshmi Durga Yanamadala - harikayanamadala1411@gmail.com*
 
-*Induja Bhanu Kodavati*
+*Induja Bhanu Kodavati - indujabhanu555@gmail.com*
